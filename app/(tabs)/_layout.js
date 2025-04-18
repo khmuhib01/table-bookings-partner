@@ -3,6 +3,7 @@ import {Ionicons} from '@expo/vector-icons';
 import {getToken} from '../../lib/storage';
 import {useEffect, useState} from 'react';
 import {router} from 'expo-router';
+import Colors from '../../constants/colors';
 
 export default function TabLayout() {
 	const [loading, setLoading] = useState(true);
@@ -21,7 +22,18 @@ export default function TabLayout() {
 	if (loading) return null;
 
 	return (
-		<Tabs>
+		<Tabs
+			screenOptions={{
+				headerStyle: {backgroundColor: Colors.danger},
+				headerTitleStyle: {color: Colors.white},
+				headerTintColor: Colors.white,
+				tabBarStyle: {backgroundColor: Colors.dangerLight},
+				tabBarActiveTintColor: Colors.white,
+				tabBarInactiveTintColor: '#eee',
+				tabBarLabelStyle: {fontSize: 12},
+				headerShown: false,
+			}}
+		>
 			<Tabs.Screen
 				name="home"
 				options={{
