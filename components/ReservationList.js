@@ -13,9 +13,6 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 	const isAuthenticated = useSelector((state) => state.user?.isAuthenticated);
 	const dispatch = useDispatch();
 
-	console.log('Authentication status:', isAuthenticated);
-	console.log('Restaurant ID:', storeRestaurantId);
-
 	const formatDate = (dateObj) => {
 		const day = dateObj.getDate().toString().padStart(2, '0');
 		const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
@@ -61,9 +58,7 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 		try {
 			setRefreshing(true);
 
-			// Get the current token
 			const token = await getToken();
-			console.log('Current token:', token);
 
 			if (!token) {
 				console.log('No token available - forcing logout');
@@ -72,7 +67,6 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 			}
 
 			const response = await getGuestReservationInfo(storeRestaurantId);
-			console.log('Reservations API response:', response);
 
 			const allReservations = response?.data?.data || [];
 

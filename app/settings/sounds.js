@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, Switch, StyleSheet, Vibration, TouchableOpacity} from 'react-native';
 import Slider from '@react-native-community/slider';
+import Colors from '../../constants/colors';
 
 export default function Sounds() {
 	const [soundEnabled, setSoundEnabled] = useState(true);
@@ -26,7 +27,12 @@ export default function Sounds() {
 
 			<View style={styles.settingRow}>
 				<Text style={styles.label}>Enable Sound</Text>
-				<Switch value={soundEnabled} onValueChange={setSoundEnabled} />
+				<Switch
+					value={soundEnabled}
+					onValueChange={setSoundEnabled}
+					trackColor={{false: '#767577', true: Colors.danger}}
+					thumbColor={soundEnabled ? Colors.white : '#f4f3f4'}
+				/>
 			</View>
 
 			<View style={styles.settingRow}>
@@ -40,19 +46,24 @@ export default function Sounds() {
 				maximumValue={1}
 				step={0.01}
 				disabled={!soundEnabled}
-				minimumTrackTintColor="#1FB28A"
+				minimumTrackTintColor={Colors.danger}
 				maximumTrackTintColor="#d3d3d3"
-				thumbTintColor="#1FB28A"
+				thumbTintColor={Colors.danger}
 			/>
 			<Text style={styles.volumeLabel}>{Math.round(volume * 100)}%</Text>
 
 			<View style={[styles.settingRow, {marginTop: 30}]}>
 				<Text style={styles.label}>Enable Vibration</Text>
-				<Switch value={vibrationEnabled} onValueChange={handleVibrationToggle} />
+				<Switch
+					value={vibrationEnabled}
+					onValueChange={handleVibrationToggle}
+					trackColor={{false: '#767577', true: Colors.danger}}
+					thumbColor={vibrationEnabled ? Colors.white : '#f4f3f4'}
+				/>
 			</View>
 
 			<TouchableOpacity
-				style={[styles.testButton, {backgroundColor: vibrationEnabled ? '#1FB28A' : '#ccc'}]}
+				style={[styles.testButton, {backgroundColor: vibrationEnabled ? Colors.danger : '#ccc'}]}
 				onPress={testVibration}
 				disabled={!vibrationEnabled}
 			>

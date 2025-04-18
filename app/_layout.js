@@ -1,11 +1,20 @@
 import {Provider} from 'react-redux';
 import store from '../store/store';
 import {Stack} from 'expo-router';
+import Colors from '../constants/colors';
 
 export default function RootLayout() {
 	return (
 		<Provider store={store}>
-			<Stack screenOptions={{headerShown: false}}>
+			<Stack
+				screenOptions={{
+					headerShown: false,
+					headerStyle: {backgroundColor: Colors.danger},
+					headerTitleStyle: {color: Colors.white},
+					headerTintColor: Colors.white,
+					animation: 'slide_from_right',
+				}}
+			>
 				<Stack.Screen
 					name="reservation/[details]"
 					options={{

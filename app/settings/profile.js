@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Image, ScrollView, ActivityIndicator} from 'react-native';
 import {useSelector} from 'react-redux';
 import {getRestaurantDetails} from './../../lib/api';
+import Colors from '../../constants/colors';
 
 const BASE_URL = 'https://apiservice.tablebookings.co.uk';
 
@@ -36,7 +37,7 @@ export default function Profile() {
 	if (loading) {
 		return (
 			<View style={styles.center}>
-				<ActivityIndicator size="large" />
+				<ActivityIndicator size="large" color={Colors.danger} />
 			</View>
 		);
 	}

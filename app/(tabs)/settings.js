@@ -7,11 +7,12 @@ import {useNavigation, CommonActions} from '@react-navigation/native';
 import {logout} from '../../store/slices/userSlice';
 import {useRouter} from 'expo-router';
 import {removeToken} from '../../lib/storage';
+import Colors from '../../constants/colors';
 
-const MenuItem = ({icon, title, onPress, style}) => (
+const MenuItem = ({icon, title, onPress, style, textStyle, iconColor}) => (
 	<TouchableOpacity onPress={onPress} style={[styles.menuItem, style]}>
-		<Ionicons name={icon} size={24} color="#333" />
-		<Text style={styles.menuItemText}>{title}</Text>
+		<Ionicons name={icon} size={24} color={iconColor || '#333'} style={styles.menuIcon} />
+		<Text style={[styles.menuItemText, textStyle]}>{title}</Text>
 	</TouchableOpacity>
 );
 
@@ -49,10 +50,6 @@ export default function SettingsScreen() {
 		await removeToken();
 		router.replace('/');
 	};
-	// const handleLogout = async () => {
-	// 	await dispatch(logoutUser());
-	// 	router.replace('/auth/login');
-	// };
 
 	return (
 		<ScrollView contentContainerStyle={styles.contentContainer}>
@@ -62,8 +59,8 @@ export default function SettingsScreen() {
 
 			<View style={styles.menuContainer}>
 				<MenuItem icon="person-outline" title="Profile" onPress={() => handlePress('profile')} />
-				<MenuItem icon="settings-outline" title="Sounds" onPress={() => handlePress('sounds')} />
-				<MenuItem icon="notifications-outline" title="Notifications" onPress={() => handlePress('notifications')} />
+				{/* <MenuItem icon="settings-outline" title="Sounds" onPress={() => handlePress('sounds')} />
+				<MenuItem icon="notifications-outline" title="Notifications" onPress={() => handlePress('notifications')} /> */}
 				<MenuItem icon="help-circle-outline" title="Help" onPress={() => handlePress('helps')} />
 				<MenuItem icon="information-circle-outline" title="About" onPress={() => handlePress('about')} />
 
@@ -74,6 +71,8 @@ export default function SettingsScreen() {
 					title="Logout"
 					onPress={() => handlePress('logout')}
 					style={styles.logoutItem}
+					textStyle={styles.logoutText}
+					iconColor={Colors.white}
 				/>
 			</View>
 		</ScrollView>
@@ -128,6 +127,10 @@ const styles = StyleSheet.create({
 		marginHorizontal: 16,
 	},
 	logoutItem: {
-		backgroundColor: '#ffe6e6',
+		backgroundColor: Colors.danger,
+	},
+
+	logoutText: {
+		color: Colors.white,
 	},
 });

@@ -3,6 +3,7 @@ import {View, StyleSheet, ActivityIndicator, TouchableOpacity} from 'react-nativ
 import {WebView} from 'react-native-webview';
 import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
+import Colors from '../../constants/colors';
 
 export default function AboutScreen() {
 	const router = useRouter();
@@ -18,7 +19,7 @@ export default function AboutScreen() {
 			<WebView
 				source={{uri: 'https://www.tablebookings.co.uk/about-us'}}
 				startInLoadingState
-				renderLoading={() => <ActivityIndicator color="#C1272D" size="large" style={StyleSheet.absoluteFill} />}
+				renderLoading={() => <ActivityIndicator color={Colors.danger} size="large" style={StyleSheet.absoluteFill} />}
 			/>
 		</View>
 	);
