@@ -21,7 +21,7 @@ export default function TabLayout() {
 	if (loading) return null;
 
 	return (
-		<Tabs>
+		<Tabs screenOptions={{headerShown: false}}>
 			<Tabs.Screen
 				name="home"
 				options={{

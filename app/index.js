@@ -47,9 +47,9 @@ export default function LoginScreen() {
 			/>
 
 			{loading ? (
-				<ActivityIndicator size="large" color="#0000ff" style={{marginVertical: 20}} />
+				<ActivityIndicator size="large" color="#C1272D" style={{marginVertical: 20}} />
 			) : (
-				<Button title="Login" onPress={handleLogin} />
+				<Button color={'#C1272D'} title="Login" onPress={handleLogin} />
 			)}
 		</View>
 	);
