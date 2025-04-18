@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {View, TextInput, Button, Text, StyleSheet} from 'react-native';
+import {View, TextInput, Button, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {postUserLogin} from '../lib/api';
 import {storeToken} from '../lib/storage';
 import {router} from 'expo-router';
@@ -7,14 +7,18 @@ import {router} from 'expo-router';
 export default function LoginScreen() {
 	const [email, setEmail] = useState('adity.chefonline@gmail.com');
 	const [password, setPassword] = useState('password');
+	const [loading, setLoading] = useState(false); // 👈 Add loading state
 
 	const handleLogin = async () => {
+		setLoading(true); // 👈 Start loading
 		try {
 			const result = await postUserLogin({email, password});
 			await storeToken(result.token);
-			router.replace('/home'); // After login, go to home
+			router.replace('/home');
 		} catch (error) {
 			console.error('Login failed:', error);
+		} finally {
+			setLoading(false); // 👈 Always stop loading
 		}
 	};
 
@@ -30,7 +34,12 @@ export default function LoginScreen() {
 				secureTextEntry
 				style={styles.input}
 			/>
-			<Button title="Login" onPress={handleLogin} />
+
+			{loading ? ( // 👈 Show spinner if loading
+				<ActivityIndicator size="small" color="#0000ff" style={{marginVertical: 20}} />
+			) : (
+				<Button title="Login" onPress={handleLogin} />
+			)}
 		</View>
 	);
 }
