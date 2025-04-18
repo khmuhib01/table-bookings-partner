@@ -1,16 +1,20 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import {View, Text, FlatList, StyleSheet, ActivityIndicator} from 'react-native';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import ReservationCard from './ReservationCard';
 import {getGuestReservationInfo} from './../lib/api';
+import {getToken, clearToken} from './../lib/storage'; // Assuming you have these storage functions
 
 export default function ReservationList({filterType, onView, onAction, showOnlyViewButton, onUpdateCounts}) {
 	const [reservations, setReservations] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const storeRestaurantId = useSelector((state) => state.user?.user?.res_uuid);
+	const isAuthenticated = useSelector((state) => state.user?.isAuthenticated);
+	const dispatch = useDispatch();
 
-	console.log('storeRestaurantId', storeRestaurantId);
+	console.log('Authentication status:', isAuthenticated);
+	console.log('Restaurant ID:', storeRestaurantId);
 
 	const formatDate = (dateObj) => {
 		const day = dateObj.getDate().toString().padStart(2, '0');
@@ -44,12 +48,34 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 	}, []);
 
 	const refreshReservations = useCallback(async () => {
+		if (!isAuthenticated) {
+			console.log('User not authenticated - skipping refresh');
+			return;
+		}
+
+		if (!storeRestaurantId) {
+			console.log('No restaurant ID available - skipping refresh');
+			return;
+		}
+
 		try {
 			setRefreshing(true);
+
+			// Get the current token
+			const token = await getToken();
+			console.log('Current token:', token);
+
+			if (!token) {
+				console.log('No token available - forcing logout');
+				handleLogout();
+				return;
+			}
+
 			const response = await getGuestReservationInfo(storeRestaurantId);
+			console.log('Reservations API response:', response);
+
 			const allReservations = response?.data?.data || [];
 
-			// Call updateCounts with all reservations
 			if (onUpdateCounts) {
 				onUpdateCounts(allReservations);
 			}
@@ -58,15 +84,23 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 			setReservations(filtered);
 		} catch (error) {
 			console.error('Error refreshing reservations:', error);
+
+			// Handle unauthorized error (401)
+			if (error.response?.status === 401) {
+				console.log('Authentication failed - forcing logout');
+				handleLogout();
+			}
 		} finally {
 			setRefreshing(false);
 			setIsLoading(false);
 		}
-	}, [storeRestaurantId, filterType, filterReservations, onUpdateCounts]);
+	}, [storeRestaurantId, filterType, filterReservations, onUpdateCounts, isAuthenticated]);
 
 	useEffect(() => {
-		refreshReservations();
-	}, [refreshReservations]);
+		if (isAuthenticated && storeRestaurantId) {
+			refreshReservations();
+		}
+	}, [refreshReservations, isAuthenticated, storeRestaurantId]);
 
 	const handleAction = (action, reservationId) => {
 		onAction(action, reservationId);
@@ -75,6 +109,14 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 	const handleView = (item) => {
 		onView(item);
 	};
+
+	if (!isAuthenticated) {
+		return (
+			<View style={styles.emptyContainer}>
+				<Text style={styles.emptyText}>Please login to view reservations</Text>
+			</View>
+		);
+	}
 
 	if (isLoading) {
 		return (

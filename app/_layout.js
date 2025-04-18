@@ -16,6 +16,41 @@ export default function RootLayout() {
 						sheetAllowedDetents: [0.5, 1.0],
 					}}
 				/>
+				<Stack.Screen
+					name="settings/profile"
+					options={{
+						headerShown: true,
+						headerTitle: 'Profile',
+					}}
+				/>
+				<Stack.Screen
+					name="settings/sounds"
+					options={{
+						headerShown: true,
+						headerTitle: 'Sound & Vibration',
+					}}
+				/>
+				<Stack.Screen
+					name="settings/notifications"
+					options={{
+						headerShown: true,
+						headerTitle: 'Notifications',
+					}}
+				/>
+				<Stack.Screen
+					name="settings/helps"
+					options={{
+						headerShown: false,
+						headerTitle: 'Helps',
+					}}
+				/>
+				<Stack.Screen
+					name="settings/about"
+					options={{
+						headerShown: false,
+						headerTitle: 'About',
+					}}
+				/>
 			</Stack>
 		</Provider>
 	);
