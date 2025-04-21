@@ -1,132 +1,125 @@
-import React, {useEffect, useState, useCallback} from 'react';
-import {View, Text, FlatList, StyleSheet, ActivityIndicator} from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
+// src/components/ReservationList.js
+
+import React, {useEffect, useState, useRef} from 'react';
+import {View, Text, FlatList, StyleSheet, ActivityIndicator, Platform} from 'react-native';
+import {useSelector} from 'react-redux';
+import * as Notifications from 'expo-notifications';
+
 import ReservationCard from './ReservationCard';
-import {getGuestReservationInfo} from './../lib/api';
-import {getToken, clearToken} from './../lib/storage'; // Assuming you have these storage functions
+import {getGuestReservationInfo} from '../lib/api';
+import {getToken} from '../lib/storage';
+
+////////////////////////////////////////////////////////////////////////////////
+// 1. Show notifications even in foreground
+Notifications.setNotificationHandler({
+	handleNotification: async () => ({
+		shouldShowAlert: true,
+		shouldPlaySound: true,
+		shouldSetBadge: false,
+	}),
+});
 
 export default function ReservationList({filterType, onView, onAction, showOnlyViewButton, onUpdateCounts}) {
+	// 2. Grab these from Redux
+	const storeRestaurantId = useSelector((state) => state.user?.user?.res_uuid);
+	const isAuthenticated = useSelector((state) => state.user?.isAuthenticated);
+
 	const [reservations, setReservations] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
-	const storeRestaurantId = useSelector((state) => state.user?.user?.res_uuid);
-	const isAuthenticated = useSelector((state) => state.user?.isAuthenticated);
-	const dispatch = useDispatch();
 
-	const formatDate = (dateObj) => {
-		const day = dateObj.getDate().toString().padStart(2, '0');
-		const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-		const year = dateObj.getFullYear();
-		return `${day}/${month}/${year}`;
-	};
+	// 3. Remember last count
+	const prevCount = useRef(0);
 
+	// Parse “DD/MM/YYYY” into Date
 	const parseDate = (dateString) => {
 		const [day, month, year] = dateString.split('/').map(Number);
 		return new Date(year, month - 1, day);
 	};
 
-	const filterReservations = useCallback((reservations, type) => {
+	// Filter based on “today” or “future”
+	const filterByType = (all) => {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
-		return reservations.filter((res) => {
-			try {
-				const resDate = parseDate(res.reservation_date);
-				if (type === 'today') {
-					return resDate.getTime() === today.getTime();
-				} else {
-					return resDate > today;
-				}
-			} catch (e) {
-				console.error('Error parsing date:', res.reservation_date, e);
-				return false;
-			}
+		return all.filter((res) => {
+			const date = parseDate(res.reservation_date);
+			return filterType === 'today' ? date.getTime() === today.getTime() : date > today;
 		});
-	}, []);
+	};
 
-	const refreshReservations = useCallback(async () => {
-		if (!isAuthenticated) {
-			console.log('User not authenticated - skipping refresh');
+	// 4. Fetch + notify if new
+	const loadReservations = async () => {
+		if (!isAuthenticated || !storeRestaurantId) {
+			setIsLoading(false);
+			setRefreshing(false);
 			return;
 		}
 
-		if (!storeRestaurantId) {
-			console.log('No restaurant ID available - skipping refresh');
-			return;
-		}
+		setRefreshing(true);
 
 		try {
-			setRefreshing(true);
-
 			const token = await getToken();
+			if (!token) throw new Error('No auth token');
 
-			if (!token) {
-				console.log('No token available - forcing logout');
-				handleLogout();
-				return;
-			}
-
+			// <-- Pass storeRestaurantId here
 			const response = await getGuestReservationInfo(storeRestaurantId);
+			const all = response?.data?.data || [];
 
-			const allReservations = response?.data?.data || [];
+			if (onUpdateCounts) onUpdateCounts(all);
 
-			if (onUpdateCounts) {
-				onUpdateCounts(allReservations);
+			const filtered = filterByType(all);
+
+			// Send local notification when count increases
+			if (filtered.length > prevCount.current) {
+				const diff = filtered.length - prevCount.current;
+				await Notifications.scheduleNotificationAsync({
+					content: {
+						title: `New Reservation${diff > 1 ? 's' : ''}`,
+						body: `You have ${diff} new ${diff > 1 ? 'reservations' : 'reservation'}.`,
+					},
+					trigger: null,
+				});
 			}
 
-			const filtered = filterReservations(allReservations, filterType);
+			prevCount.current = filtered.length;
 			setReservations(filtered);
-		} catch (error) {
-			console.error('Error refreshing reservations:', error);
-
-			// Handle unauthorized error (401)
-			if (error.response?.status === 401) {
-				console.log('Authentication failed - forcing logout');
-				handleLogout();
-			}
+		} catch (err) {
+			console.error('Error loading reservations:', err);
 		} finally {
-			setRefreshing(false);
 			setIsLoading(false);
+			setRefreshing(false);
 		}
-	}, [storeRestaurantId, filterType, filterReservations, onUpdateCounts, isAuthenticated]);
+	};
 
+	// 5. On mount, set up Android channel, load once & poll
 	useEffect(() => {
-		if (isAuthenticated && storeRestaurantId) {
-			refreshReservations();
+		if (Platform.OS === 'android') {
+			Notifications.setNotificationChannelAsync('default', {
+				name: 'default',
+				importance: Notifications.AndroidImportance.MAX,
+			});
 		}
-	}, [refreshReservations, isAuthenticated, storeRestaurantId]);
 
-	const handleAction = (action, reservationId) => {
-		onAction(action, reservationId);
-	};
+		loadReservations();
+		const interval = setInterval(loadReservations, 30000);
+		return () => clearInterval(interval);
+	}, []);
 
-	const handleView = (item) => {
-		onView(item);
-	};
-
-	if (!isAuthenticated) {
-		return (
-			<View style={styles.emptyContainer}>
-				<Text style={styles.emptyText}>Please login to view reservations</Text>
-			</View>
-		);
-	}
-
+	// 6. Render loading / empty / list
 	if (isLoading) {
 		return (
-			<View style={styles.loadingContainer}>
+			<View style={styles.center}>
 				<ActivityIndicator size="large" color="#C1272D" />
-				<Text style={styles.loadingText}>Loading reservations...</Text>
+				<Text>Loading reservations…</Text>
 			</View>
 		);
 	}
 
-	if (reservations.length === 0) {
+	if (!reservations.length) {
 		return (
-			<View style={styles.emptyContainer}>
-				<Text style={styles.emptyText}>
-					{filterType === 'today' ? 'No reservations for today' : 'No upcoming reservations'}
-				</Text>
+			<View style={styles.center}>
+				<Text>{filterType === 'today' ? 'No reservations for today' : 'No upcoming reservations'}</Text>
 			</View>
 		);
 	}
@@ -134,46 +127,34 @@ export default function ReservationList({filterType, onView, onAction, showOnlyV
 	return (
 		<FlatList
 			data={reservations}
-			keyExtractor={(item) => item.uuid || item.id?.toString()}
+			keyExtractor={(item) => item.uuid || String(item.id)}
 			renderItem={({item}) => (
 				<ReservationCard
 					item={item}
-					onAccept={() => handleAction('accept', item.uuid)}
-					onReject={() => handleAction('reject', item.uuid)}
-					onCancel={() => handleAction('cancel', item.uuid)}
-					onCheckIn={() => handleAction('checkin', item.uuid)}
-					onCheckOut={() => handleAction('checkout', item.uuid)}
-					onView={() => handleView(item)}
+					onAccept={() => onAction('accept', item.uuid)}
+					onReject={() => onAction('reject', item.uuid)}
+					onCancel={() => onAction('cancel', item.uuid)}
+					onCheckIn={() => onAction('checkin', item.uuid)}
+					onCheckOut={() => onAction('checkout', item.uuid)}
+					onView={() => onView(item)}
 					showOnlyViewButton={showOnlyViewButton}
 				/>
 			)}
-			contentContainerStyle={styles.listContainer}
 			refreshing={refreshing}
-			onRefresh={refreshReservations}
+			onRefresh={loadReservations}
+			contentContainerStyle={styles.list}
 		/>
 	);
 }
 
 const styles = StyleSheet.create({
-	loadingContainer: {
+	center: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+		padding: 16,
 	},
-	loadingText: {
-		marginTop: 10,
-		color: '#666',
-	},
-	emptyContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	emptyText: {
-		color: '#888',
-		fontSize: 16,
-	},
-	listContainer: {
+	list: {
 		padding: 16,
 	},
 });

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "HolloWorld",
-    "slug": "HolloWorld",
+    "name": "Table Bookings Partner",
+    "slug": "table-bookings-partner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.khmuhib.HolloWorld"
+      "package": "com.chefonline.tablebookingspartner",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -43,8 +44,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "a191ca2c-054c-4bd8-8472-2d705e737414"
+        "projectId": "a61dde4d-8aba-4bd5-b985-53190e3c7dfe"
       }
-    }
+    },
+    "owner": "khmuhib_chef"
   }
 }

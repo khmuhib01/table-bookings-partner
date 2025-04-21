@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert} from 'react-native';
+import {View, Text, TextInput, Button, StyleSheet, ActivityIndicator, Alert, Image} from 'react-native';
 import {useDispatch} from 'react-redux';
 import {postUserLogin} from '../lib/api';
 import {storeToken} from '../lib/storage';
 import {setUser, setToken} from '../store/slices/userSlice';
 import {router} from 'expo-router';
+
+import registerNNPushToken from 'native-notify';
 
 export default function LoginScreen() {
 	const [email, setEmail] = useState('adity.chefonline@gmail.com');
@@ -12,6 +14,8 @@ export default function LoginScreen() {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const dispatch = useDispatch();
+
+	registerNNPushToken(29309, 'iedTkyFbwSYdFMWeDbCLdx');
 
 	const handleLogin = async () => {
 		if (!email || !password) {
@@ -39,6 +43,7 @@ export default function LoginScreen() {
 
 	return (
 		<View style={styles.container}>
+			<Image source={require('../assets/images/icon.png')} style={styles.logo} />
 			<Text style={styles.title}>Login</Text>
 			{error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -73,6 +78,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		padding: 20,
 		backgroundColor: '#fff',
+	},
+	logo: {
+		width: 100,
+		height: 100,
+		resizeMode: 'contain',
+		alignSelf: 'center',
 	},
 	title: {
 		fontSize: 24,

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "527228187508",
+    "project_id": "table-bookings-partner",
+    "storage_bucket": "table-bookings-partner.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527228187508:android:94ad10b6cfbdeea01bf221",
+        "android_client_info": {
+          "package_name": "com.chefonline.tablebookingspartner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAO-rnUUj0jWFc9bUFe1bDeYrinW4ZPiYY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
