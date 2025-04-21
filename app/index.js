@@ -6,12 +6,16 @@ import {storeToken} from '../lib/storage';
 import {setUser, setToken} from '../store/slices/userSlice';
 import {router} from 'expo-router';
 
+import registerNNPushToken from 'native-notify';
+
 export default function LoginScreen() {
 	const [email, setEmail] = useState('adity.chefonline@gmail.com');
 	const [password, setPassword] = useState('password');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const dispatch = useDispatch();
+
+	registerNNPushToken(29309, 'iedTkyFbwSYdFMWeDbCLdx');
 
 	const handleLogin = async () => {
 		if (!email || !password) {
